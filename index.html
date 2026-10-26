@@ -5,50 +5,121 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>سحب اليوم</title>
 <style>
-:root{--bg:#f6f4fb;--card:#fff;--text:#1e1b2e;--muted:#6b6785;--accent:#7c3aed;--line:#e4e0f0;--err:#c0262d;--ok:#12805c}
-@media (prefers-color-scheme:dark){:root{--bg:#14121f;--card:#1f1c30;--text:#f0eefb;--muted:#a29dc0;--line:#322e4a;--err:#ff7b80;--ok:#4cd2a0}}
+:root{--bg:#f6f4fb;--card:#fff;--text:#1e1b2e;--muted:#6b6785;--accent:#7c3aed;--gold:#f59e0b;--line:#e4e0f0;--ad:#ece9f7;--err:#c0262d}
+@media (prefers-color-scheme:dark){:root{--bg:#14121f;--card:#1f1c30;--text:#f0eefb;--muted:#a29dc0;--line:#322e4a;--ad:#2a2640;--err:#ff7b80}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));max-width:440px;margin-inline:auto}
-h1{font-size:22px;margin:8px 0 14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:12px}
-input{font:inherit;width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);margin-top:10px;direction:ltr;text-align:left}
-input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px;width:100%;margin-top:10px;background:var(--accent);color:#fff;cursor:pointer}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;padding:max(14px,env(safe-area-inset-top)) 14px 90px;max-width:480px;margin-inline:auto}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+h1{font-size:20px;margin:0}h2{font-size:16px;margin:0 0 10px}
+.gems{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+button{font:inherit;border:0;border-radius:12px;padding:11px 16px;font-weight:700;background:var(--accent);color:#fff;width:100%;margin-top:10px;cursor:pointer}
+button.alt{background:var(--gold);color:#2a1a00}
 button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
 button:disabled{opacity:.5}
+input{font:inherit;width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);margin-top:10px;direction:ltr;text-align:left}
+input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .m{color:var(--muted);font-size:13px;margin:6px 0 0}
-#msg{margin-top:10px;font-weight:600;font-size:14px;min-height:20px}
-#msg.err{color:var(--err)}#msg.ok{color:var(--ok)}
-.big{font-size:34px;font-weight:800;margin:6px 0}
-.code{direction:ltr;text-align:left;font-family:ui-monospace,Menlo,monospace}
+.msg{font-size:14px;margin-top:10px;font-weight:600}
+.big{font-size:28px;font-weight:800}
+.bar{height:10px;background:var(--ad);border-radius:99px;overflow:hidden;margin-top:10px}.bar i{display:block;height:100%;background:var(--gold);width:0}
+.wheelwrap{position:relative;width:250px;height:250px;margin:6px auto}
+canvas{width:250px;height:250px;transition:transform 4s cubic-bezier(.17,.67,.12,1)}
+.ptr{position:absolute;top:-8px;left:50%;transform:translateX(-50%);border-left:11px solid transparent;border-right:11px solid transparent;border-top:20px solid var(--text);z-index:2}
+.balls{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.b{width:32px;height:32px;border-radius:50%;background:var(--ad);display:grid;place-items:center;font-size:13px;font-weight:700}
+.tk{border-top:1px dashed var(--line);padding-top:8px;margin-top:8px}
+.banner{position:fixed;left:0;right:0;bottom:0;background:var(--ad);border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:12px;padding:10px 8px calc(10px + env(safe-area-inset-bottom));z-index:5}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;place-items:center;z-index:20;padding:20px}.ov.on{display:grid}
+.adbox{background:var(--card);border-radius:18px;padding:22px;width:100%;max-width:340px;text-align:center}
+.adfake{background:var(--ad);border-radius:12px;height:150px;display:grid;place-items:center;color:var(--muted);margin:12px 0}
+#err{color:var(--err);font-weight:600;font-size:14px;margin-top:10px;min-height:18px}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
-<h1>🎟️ سحب اليوم المجاني</h1>
+<header><h1>🎟️ سحب اليوم المجاني</h1><div class="gems" id="gb" hidden>💎 <span id="g">0</span></div></header>
 
 <div class="card" id="authView" hidden>
-  <b>تسجيل الدخول أو إنشاء حساب</b>
+  <h2>تسجيل الدخول أو إنشاء حساب</h2>
   <input id="em" type="email" placeholder="name@example.com" autocomplete="email">
   <input id="pw" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)" autocomplete="current-password">
   <button id="up">إنشاء حساب</button>
   <button id="in" class="ghost">لدي حساب، تسجيل دخول</button>
+  <div id="err" role="status"></div>
 </div>
 
-<div class="card" id="homeView" hidden>
-  <p class="m" id="who" style="direction:ltr;text-align:right"></p>
-  <div class="big">💎 <span id="gems">0</span></div>
-  <p class="m">رمز الإحالة الخاص بك:</p>
-  <p class="code" id="ref" style="font-weight:700;margin:4px 0 0"></p>
-  <button id="out" class="ghost">تسجيل الخروج</button>
+<div id="app" hidden>
+<div class="card">
+  <h2>محفظتي</h2>
+  <p class="m" id="who" style="direction:ltr;text-align:right;margin:0"></p>
+  <div class="big">$<span id="usd">0.00</span></div>
+  <div class="bar"><i id="pg"></i></div>
+  <p class="m">الحد الأدنى للسحب 27 دولار (1000 جوهرة = 1 دولار). نسخة تجريبية: لا يوجد دفع حقيقي.</p>
+  <input id="pm" placeholder="حساب الدفع (تجريبي)">
+  <button id="wd">اطلب سحب 27$ (تجريبي)</button>
+  <div id="wl"></div>
+  <button class="ghost" id="out">تسجيل الخروج</button>
+</div>
+<div class="msg" id="nt"></div>
+
+<div class="card">
+  <h2>ادعُ أصدقاءك</h2>
+  <input id="rl" readonly>
+  <button class="alt" id="cp">نسخ رابط الإحالة</button>
+  <p class="m">من يسجل عبر رابطك يحصل على 10$ تجريبية. مكافأة الداعي تحتاج سيرفر وغير مفعلة بعد.</p>
 </div>
 
-<div id="msg" role="status"></div>
+<div class="card">
+  <h2>طرق لربح الجواهر</h2>
+  <button id="daily">مكافأة اليوم (+25 💎)</button>
+  <button class="alt" id="adgems">شاهد إعلان (+20 💎)</button>
+  <p class="m" id="adc"></p>
+  <h2 style="margin-top:14px">🎁 مزايا مقابل الإعلانات</h2>
+  <button class="alt" id="bst">🍀 معزز الحظ للسحب القادم</button>
+  <button class="alt" id="ftk">🎟️ تذكرة مجانية</button>
+  <button class="alt" id="xg">🎮 محاولة إضافية في الألعاب</button>
+  <p class="m" id="adx"></p>
+</div>
+
+<div class="card">
+  <h2>🧠 لعبة الذاكرة</h2>
+  <p class="m" style="margin:0 0 8px">طابق كل الأزواج واربح 40 💎 (3 مرات باليوم)</p>
+  <div id="mg" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
+  <button id="mstart">ابدأ اللعبة</button>
+</div>
+
+<div class="card">
+  <h2>⚡ تحدي الضغط</h2>
+  <p class="m" style="margin:0">اضغط 40 مرة خلال 10 ثوانٍ واربح 30 💎 (3 مرات باليوم)</p>
+  <button id="tap">اضغط للبدء</button>
+  <div class="msg" id="tm"></div>
+</div>
+
+<div class="card">
+  <h2>عجلة الجواهر اليومية</h2>
+  <div class="wheelwrap"><div class="ptr"></div><canvas id="w" width="500" height="500"></canvas></div>
+  <button id="spin">لف العجلة (مجاناً مرة باليوم)</button>
+  <button class="alt" id="adspin">شاهد إعلان للفة إضافية</button>
+</div>
+
+<div class="card">
+  <h2>تذاكر السحب</h2>
+  <p class="m" style="margin:0">كل تذكرة بـ 10 جواهر. الفائزون قلة فقط، والجائزة عشوائية من 0.20$ إلى 1.00$.</p>
+  <button id="buy">اشترِ تذكرة (10 💎)</button>
+  <div id="tks"></div>
+  <button id="draw">شغّل السحب الآن</button>
+  <div id="res"></div>
+</div>
+</div>
+
+<div class="banner">مساحة إعلان بانر (AdMob / AdSense)</div>
+<div class="ov" id="ov"><div class="adbox"><b>إعلان</b><div class="adfake">مساحة إعلان فيديو</div><div id="cd">5</div><button id="close" disabled>إغلاق</button></div></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyDmzyC9nr9sjRSiS0jMmm__WFZ1qUeCOTA",
@@ -60,6 +131,12 @@ const app = initializeApp({
 });
 const auth = getAuth(app), db = getFirestore(app);
 const $ = id => document.getElementById(id);
+const BASE = location.origin + location.pathname + "#";
+const WIN_P = 0.001, AD_N = 20, AD_GEMS = 1000, REF_NEW = 10000, MIN_WD = 27000;
+const today = () => new Date().toISOString().slice(0, 10);
+const usd = g => (g / 1000).toFixed(2);
+const defS = () => ({ gems: 30, tickets: [], last: "", done: {}, ads: 0, boost: 0, refs: 0, refBy: "", reqs: [] });
+let S = null, ref = null, loaded = false, NT = "", st = null, busyW = false, after = null;
 
 const ERR = {
   "auth/email-already-in-use": "هذا الإيميل مسجل مسبقاً، استخدم تسجيل الدخول",
@@ -67,39 +144,144 @@ const ERR = {
   "auth/weak-password": "كلمة المرور ضعيفة، استخدم 6 أحرف على الأقل",
   "auth/invalid-credential": "الإيميل أو كلمة المرور غير صحيحة",
   "auth/network-request-failed": "لا يوجد اتصال بالإنترنت",
-  "auth/too-many-requests": "محاولات كثيرة، انتظر قليلاً ثم حاول مجدداً",
-  "permission-denied": "رفض السيرفر العملية، راجع قواعد Firestore"
+  "auth/too-many-requests": "محاولات كثيرة، انتظر قليلاً",
+  "permission-denied": "رفض السيرفر الحفظ، راجع قواعد Firestore"
 };
-function say(t, cls){ const m = $("msg"); m.textContent = t || ""; m.className = cls || ""; }
-function fail(e){ say(ERR[e.code] || ("حدث خطأ: " + (e.code || e.message)), "err"); }
-async function busy(fn){ ["up","in","out"].forEach(i => $(i).disabled = true); try { await fn(); } catch(e){ fail(e); } ["up","in","out"].forEach(i => $(i).disabled = false); }
+const fail = e => { $("err").textContent = ERR[e.code] || ("حدث خطأ: " + (e.code || e.message)); };
+const authBusy = async fn => { $("up").disabled = $("in").disabled = true; $("err").textContent = ""; try { await fn(); } catch (e) { fail(e); } $("up").disabled = $("in").disabled = false; };
+$("up").onclick = () => authBusy(() => createUserWithEmailAndPassword(auth, $("em").value.trim().toLowerCase(), $("pw").value));
+$("in").onclick = () => authBusy(() => signInWithEmailAndPassword(auth, $("em").value.trim().toLowerCase(), $("pw").value));
+$("out").onclick = () => signOut(auth);
 
-function creds(){ return [$("em").value.trim().toLowerCase(), $("pw").value]; }
-$("up").onclick = () => busy(async () => { const [e,p] = creds(); say("جاري إنشاء الحساب..."); await createUserWithEmailAndPassword(auth, e, p); });
-$("in").onclick = () => busy(async () => { const [e,p] = creds(); say("جاري تسجيل الدخول..."); await signInWithEmailAndPassword(auth, e, p); });
-$("out").onclick = () => busy(() => signOut(auth));
+function save() {
+  if (!loaded) return;
+  clearTimeout(st);
+  st = setTimeout(() => updateDoc(ref, { gems: S.gems, tickets: S.tickets, last: S.last, done: S.done, ads: S.ads, boost: S.boost, refs: S.refs, refBy: S.refBy, reqs: S.reqs }).catch(e => { NT = ERR[e.code] || "تعذر الحفظ"; $("nt").textContent = NT; }), 300);
+}
+const lim = k => S.done[today() + k] || 0;
+const inc = k => { S.done[today() + k] = lim(k) + 1; };
+const add = t => { NT = (NT ? NT + " • " : "") + t; };
 
-async function ensureUserDoc(user){
-  const ref = doc(db, "users", user.uid);
-  let snap = await getDoc(ref);
-  if (!snap.exists()){
-    await setDoc(ref, { email: user.email, gems: 30, refCode: user.uid.slice(0, 6).toLowerCase(), createdAt: serverTimestamp() });
-    snap = await getDoc(ref);
-  }
-  return snap.data();
+function render() {
+  $("g").textContent = S.gems;
+  $("usd").textContent = usd(S.gems);
+  $("who").textContent = auth.currentUser ? auth.currentUser.email : "";
+  $("nt").textContent = NT;
+  $("rl").value = S.refCode ? BASE + S.refCode : "";
+  $("pg").style.width = Math.min(100, S.gems / (MIN_WD / 100)) + "%";
+  $("wd").disabled = S.gems < MIN_WD;
+  $("wl").innerHTML = S.reqs.map(q => `<div class="tk"><small>${q.date}: طلب سحب $${q.amt} (تجريبي)</small></div>`).join("");
+  $("adc").textContent = `📺 كل ${AD_N} إعلان تشاهدها = ${usd(AD_GEMS)}$ — شاهدت ${S.ads % AD_N}/${AD_N}`;
+  $("adx").textContent = `معزز الحظ x${1 + S.boost} • المتبقي اليوم: معزز ${3 - lim("b")}، تذاكر ${3 - lim("f")}، محاولات ${3 - lim("x")}`;
+  $("spin").disabled = busyW || S.last === today();
+  $("adspin").disabled = busyW;
+  $("tks").innerHTML = S.tickets.map((t, i) => `<div class="tk"><small>تذكرة ${i + 1}</small><div class="balls">${t.split("-").map(n => `<div class="b">${n}</div>`).join("")}</div></div>`).join("");
+  save();
 }
 
 onAuthStateChanged(auth, async user => {
-  if (!user){ $("authView").hidden = false; $("homeView").hidden = true; say(""); return; }
+  if (!user) { loaded = false; S = null; $("authView").hidden = false; $("app").hidden = true; $("gb").hidden = true; return; }
   try {
-    const d = await ensureUserDoc(user);
-    $("who").textContent = d.email;
-    $("gems").textContent = d.gems;
-    $("ref").textContent = d.refCode;
-    $("authView").hidden = true; $("homeView").hidden = false;
-    say("تم تسجيل الدخول بنجاح", "ok");
-  } catch(e){ fail(e); }
+    ref = doc(db, "users", user.uid);
+    let snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, { email: user.email, gems: 30, refCode: user.uid.slice(0, 6).toLowerCase(), createdAt: serverTimestamp() });
+      snap = await getDoc(ref);
+    }
+    const d = snap.data();
+    S = Object.assign(defS(), d);
+    for (const k in S.done) if (!k.startsWith(today())) delete S.done[k];
+    const h = location.hash.replace("#", "");
+    if (!S.refBy && h && h !== S.refCode) { S.refBy = h; S.gems += REF_NEW; NT = `🎉 حصلت على ${usd(REF_NEW)}$ مكافأة التسجيل عبر دعوة صديق (تجريبي)`; }
+    loaded = true;
+    $("authView").hidden = true; $("app").hidden = false; $("gb").hidden = false;
+    render();
+  } catch (e) { $("authView").hidden = false; fail(e); }
 });
+
+/* ---- wheel ---- */
+const vals = [50, 100, 150, 100, 200, 100, 150, 100], N = vals.length, SEG = 360 / N;
+let rot = 0;
+const cv = $("w"), cx = cv.getContext("2d");
+cx.translate(250, 250);
+vals.forEach((v, i) => {
+  const a = -Math.PI / 2 + i * SEG * Math.PI / 180, b = a + SEG * Math.PI / 180;
+  cx.beginPath(); cx.moveTo(0, 0); cx.arc(0, 0, 245, a, b); cx.fillStyle = i % 2 ? "#f59e0b" : "#7c3aed"; cx.fill();
+  cx.save(); cx.rotate((a + b) / 2); cx.fillStyle = "#fff"; cx.font = "bold 34px sans-serif"; cx.textAlign = "right"; cx.fillText(v, 225, 12); cx.restore();
+});
+function doSpin() {
+  busyW = true; render();
+  const i = Math.floor(Math.random() * N), cur = ((rot % 360) + 360) % 360, need = (((360 - (i + .5) * SEG - cur) % 360) + 360) % 360;
+  rot += 360 * 5 + need; cv.style.transform = `rotate(${rot}deg)`;
+  setTimeout(() => { busyW = false; S.gems += vals[i]; add(`🎡 ربحت ${vals[i]} 💎`); render(); }, 4100);
+}
+$("spin").onclick = () => { S.last = today(); NT = ""; doSpin(); };
+
+/* ---- ads (placeholder) ---- */
+function showAd(cb) {
+  after = cb; let c = 5; $("cd").textContent = c; $("close").disabled = true; $("ov").classList.add("on");
+  const t = setInterval(() => { c--; $("cd").textContent = c > 0 ? c : "✓"; if (c <= 0) { clearInterval(t); $("close").disabled = false; } }, 1000);
+}
+$("close").onclick = () => {
+  $("ov").classList.remove("on"); const f = after; after = null; NT = "";
+  S.ads++; if (S.ads % AD_N === 0) { S.gems += AD_GEMS; add(`🎉 أكملت ${AD_N} إعلان: +${usd(AD_GEMS)}$`); }
+  if (f) f(); else render();
+};
+const cap = (k, m) => { if (lim(k) >= 3) { NT = m; render(); return false; } return true; };
+$("adspin").onclick = () => showAd(doSpin);
+$("adgems").onclick = () => showAd(() => { S.gems += 20; add("+20 💎"); render(); });
+$("daily").onclick = () => { NT = ""; if (lim("d")) { NT = "استلمت مكافأة اليوم، عد غداً"; render(); return; } inc("d"); S.gems += 25; NT = "+25 💎"; render(); };
+$("bst").onclick = () => { if (!cap("b", "وصلت الحد اليومي لمعزز الحظ")) return; showAd(() => { inc("b"); S.boost = Math.min(3, S.boost + 1); add(`🍀 فرصتك في السحب القادم x${1 + S.boost}`); render(); }); };
+$("ftk").onclick = () => { if (!cap("f", "وصلت الحد اليومي للتذاكر المجانية")) return; showAd(() => { inc("f"); S.tickets.push(pick()); add("🎟️ حصلت على تذكرة مجانية"); render(); }); };
+$("xg").onclick = () => { if (!cap("x", "وصلت الحد اليومي للمحاولات الإضافية")) return; showAd(() => { inc("x"); S.done[today() + "m"] = Math.max(0, lim("m") - 1); S.done[today() + "t"] = Math.max(0, lim("t") - 1); add("🎮 محاولة إضافية في كل لعبة"); render(); }); };
+
+/* ---- tickets + draw ---- */
+function pick() { const s = new Set(); while (s.size < 6) s.add(1 + Math.floor(Math.random() * 45)); return [...s].sort((a, b) => a - b).join("-"); }
+$("buy").onclick = () => { NT = ""; if (S.gems < 10) { NT = "جواهرك لا تكفي، شاهد إعلاناً لتحصل على المزيد"; render(); return; } S.gems -= 10; S.tickets.push(pick()); render(); };
+$("draw").onclick = () => {
+  if (!S.tickets.length) { $("res").innerHTML = '<div class="msg">اشترِ تذكرة أولاً</div>'; return; }
+  const n = S.tickets.length, pp = WIN_P * (1 + S.boost); S.boost = 0;
+  const w = []; let tot = 0;
+  for (let i = 0; i < n; i++) if (Math.random() < pp) { const c = 20 + Math.floor(Math.random() * 81); w.push(c); tot += c; }
+  S.gems += tot * 10; S.tickets = []; NT = "";
+  $("res").innerHTML = `<div class="msg">${w.length ? "🎉 مبروك! ربحت " + w.map(c => (c / 100).toFixed(2)).join("$ + ") + "$ = " + (tot / 100).toFixed(2) + "$" : `لم تربح هذه المرة (${n} تذكرة). حاول مرة أخرى`}</div>`;
+  render();
+};
+
+/* ---- games ---- */
+let mc = [], op = [], ma = {}, lk = false;
+const dm = () => { $("mg").innerHTML = mc.map((c, i) => { const s = ma[i] || op.includes(i); return `<button data-i="${i}" style="margin:0;font-size:24px;padding:14px 0;background:${s ? "var(--ad)" : "var(--accent)"}">${s ? c : "❓"}</button>`; }).join(""); };
+$("mstart").onclick = () => {
+  if (lim("m") >= 3) { NT = "وصلت الحد اليومي للعبة الذاكرة"; render(); return; }
+  const e = ["🍎", "🚀", "🎲", "🐱"]; mc = e.concat(e).sort(() => Math.random() - .5); op = []; ma = {}; lk = false; dm();
+};
+$("mg").onclick = ev => {
+  const b = ev.target.closest("button"); if (!b || lk) return;
+  const i = +b.dataset.i; if (ma[i] || op.includes(i)) return;
+  op.push(i); dm();
+  if (op.length === 2) { lk = true; setTimeout(() => { if (mc[op[0]] === mc[op[1]]) { ma[op[0]] = 1; ma[op[1]] = 1; } op = []; lk = false; dm(); if (Object.keys(ma).length === 8) { inc("m"); S.gems += 40; NT = "🎉 فزت! +40 💎"; render(); } }, 700); }
+};
+let tc = 0, tt = null;
+$("tap").onclick = () => {
+  if (!tt) {
+    if (lim("t") >= 3) { $("tm").textContent = "وصلت الحد اليومي"; return; }
+    tc = 0; let left = 10; $("tap").textContent = "اضغط!";
+    tt = setInterval(() => {
+      left--; $("tm").textContent = `الوقت: ${left} — الضغطات: ${tc}`;
+      if (left <= 0) { clearInterval(tt); tt = null; inc("t"); if (tc >= 40) { S.gems += 30; $("tm").textContent = `ممتاز! ${tc} ضغطة، +30 💎`; } else { $("tm").textContent = `انتهى الوقت: ${tc} ضغطة فقط`; } $("tap").textContent = "العب مرة أخرى"; render(); }
+    }, 1000);
+  }
+  tc++;
+};
+
+/* ---- wallet / referral ---- */
+$("wd").onclick = () => {
+  const to = $("pm").value.trim(); NT = "";
+  if (!to) { NT = "أدخل حساب الدفع"; render(); return; }
+  if (S.gems < MIN_WD) return;
+  S.gems -= MIN_WD; S.reqs.push({ amt: 27, to: to.slice(0, 80), date: today() }); NT = "تم تسجيل طلب السحب (تجريبي، لا يوجد دفع حقيقي)"; render();
+};
+$("cp").onclick = () => { const v = $("rl").value; navigator.clipboard.writeText(v).then(() => { $("cp").textContent = "تم النسخ ✓"; }, () => $("rl").select()); };
 </script>
 </body>
 </html>
